@@ -1,21 +1,30 @@
 # gulp-task-metalsmith [![Circle CI](https://circleci.com/gh/VARIANTE/gulp-task-metalsmith/tree/master.svg?style=svg)](https://circleci.com/gh/VARIANTE/gulp-task-metalsmith/tree/master) [![npm version](https://badge.fury.io/js/gulp-task-metalsmith.svg)](https://badge.fury.io/js/gulp-task-metalsmith)
 
-Gulp task for processing fonts with the option to watch the emitted source files for changes.
+Gulp task for processing template files with Metalsmith plugins, option to watch source files for changes. Built-in plugins are executed in the following order:
+
+1. [metalsmith-collections](https://www.npmjs.com/package/metalsmith-collections)
+2. [metalsmith-markdown](https://www.npmjs.com/package/metalsmith-markdown)
+3. [metalsmith-layouts](https://www.npmjs.com/package/metalsmith-layouts)
+4. [metalsmith-in-place](https://www.npmjs.com/package/metalsmith-in-place)
+5. [metalsmith-permalinks](https://www.npmjs.com/package/metalsmith-permalinks)
+6. [metalsmith-mapsite](https://www.npmjs.com/package/metalsmith-mapsite)
+
+This task also has built-in support for [i18n](https://www.npmjs.com/package/i18n).
 
 ## Usage
 
 ```js
 import gulp from 'gulp';
-import fonts from 'gulp-task-metalsmith';
+import metalsmith from 'gulp-task-metalsmith';
 
-gulp.task('fonts', fonts({
-  src: 'app/fonts/**/*',
-  dest: 'public/fonts'
+gulp.task('views', metalsmith({
+  src: 'app/views/**/*',
+  dest: 'public'
 }));
 ```
 
 ```
-$ gulp fonts
+$ gulp views
 ```
 
 ## API
@@ -58,10 +67,10 @@ If specified, this is the base path for the source files to emit into the stream
 
 ##### `options.src` (required)
 
-Type: `string` or `Array`<br>
+Type: `string``<br>
 Default: `undefined`
 
-Glob or an array of globs that matches files to emit. These globs are all relative to `options.base` if specified.
+Path of directory where Metalsmith should read files from, relative to `options.base` if specified.
 
 ##### `options.dest` (required)
 
@@ -90,6 +99,67 @@ Default: Current task name
 
 Task(s) or methods to invoke whenever watched files have changed. This array is applied to [`run-sequence`](https://www.npmjs.com/package/run-sequence). Defaults to the current task name.
 
+##### `options.i18n`
+
+Type: `Object`<br>
+Default: `undefined`
+
+Options for [`i18n`](https://www.npmjs.com/package/i18n).
+
+##### `options.metadata`
+
+Type: `Object`<br>
+Default: `undefined`
+
+Metadata for all templates.
+
+##### `options.collections`
+
+Type: `Object`<br>
+Default: `undefined`
+
+Options for [`metalsmith-collections`](https://www.npmjs.com/package/metalsmith-collections), with an additional key `permalink` which defines the permalink pattern for each individual collection.
+
+##### `options.markdown`
+
+Type: `Object`<br>
+Default: `undefined`
+
+Options for [`metalsmith-markdown`](https://www.npmjs.com/package/metalsmith-markdown).
+
+##### `options.layouts`
+
+Type: `Object`<br>
+Default: 
+```js
+{
+  engine: 'pug',
+  directory: `${options.src}`/layouts`
+}
+```
+
+Options for [`metalsmith-layouts`](https://www.npmjs.com/package/metalsmith-layouts). This object is automatically merged with `options.{engine_name}`, where `{engine_name}` is the value for `options.layouts.engine`.
+
+##### `options.inPlace`
+
+Type: `Object`<br>
+Default: 
+```js
+{
+  engine: 'pug',
+  rename: true
+}
+```
+
+Options for [`metalsmith-in-place`](https://www.npmjs.com/package/metalsmith-in-place). This object is automatically merged with `options.{engine_name}`, where `{engine_name}` is the value for `options.inPlace.engine`.
+
+##### `options.mapsite`
+
+Type: `Object`<br>
+Default: `undefined`
+
+Options for [`metalsmith-mapsite`](https://www.npmjs.com/package/metalsmith-mapsite).
+
 #### `extendsDefaults`
 
 Type: `boolean`<br>
@@ -102,7 +172,7 @@ This module has a default config provided for you. When you pass in your own con
 You can pass a `--watch` or `--w` flag to the Gulp command to enable file watching, like so:
 
 ```
-$ gulp fonts --watch
+$ gulp views --watch
 ```
 
 By default, files that were emitted as source files will be marked for watching and the task name assigned to this module will be executed whenever a file changes. To override this behavior use `options.watch`.

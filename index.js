@@ -34,15 +34,15 @@ const DEFAULT_CONFIG = {
   markdown: undefined,
   layouts: {
     pattern: undefined, // Path relative to `config.src`
-    engine: 'jade',
+    engine: 'pug',
     directory: undefined // Defaults to `config.src`/layouts in runtime.
   },
   inPlace: {
     pattern: undefined, // Path relative to `config.src`
-    engine: 'jade',
+    engine: 'pug',
     rename: true
   },
-  jade: {
+  pug: {
     pretty: true
   },
   sitemap: {
@@ -51,7 +51,7 @@ const DEFAULT_CONFIG = {
   },
   envs: {
     production: {
-      jade: {
+      pug: {
         pretty: false
       }
     }
@@ -59,27 +59,52 @@ const DEFAULT_CONFIG = {
 };
 
 /**
- * Method that defines the task with configurable options. Only `options.src`
- * and `options.dest` are required.
+ * Method that defines the task with configurable Metalsmith plugin options.
  *
  * @param {Object} options - Task options.
  * @param {string} [options.base] - Base path for the source files to emit.
- * @param {string|string[]} options.src - Glob or an array of globs that matches
- *                                        files to emit. These globs are all
- *                                        relative to `options.base`.
+ * @param {string} options.src - Directory path relative to `options.base` (if
+ *                               specified) where Metalsmith should read files
+ *                               from.
  * @param {string} options.dest - Path of destination directory to write files
  *                                to.
- * @param {string|Function|Array} [options.watch] - Task(s) or methods to invoke
- *                                                  whenever watched files have
- *                                                  changed. This array is
- *                                                  applied to `run-sequence`.
- *                                                  Defaults to the current
- *                                                  task name.
- * @param {boolean} [extendsDefaults=false] - Specifies whether array values are
+ * @param {Array} [options.ignore=['layouts', 'includes']] - Path(s) relative to
+ *                                                           `options.src` to
+ *                                                           ignore.
+ * @param {Object} [options.watch] - Options that define the file watching
+ *                                   behavior. If set to `false`, watching will
+ *                                   be disabled even if the CLI flag is set.
+ * @param {string|string[]} [options.watch.files] - Glob pattern(s) that matches
+ *                                                  files to watch. Defaults to
+ *                                                  the emitted files.
+ * @param {string|Function|Array} [options.watch.tasks] - Array of task names or
+ *                                                        functions to execute
+ *                                                        when watched files
+ *                                                        change. Defaults to
+ *                                                        the current task name.
+ * @param {Object} [options.i18n] - `i18n` options.
+ * @param {Object} [options.metadata] - Metadata for Metalsmith templates.
+ * @param {Object} [options.collections] - `metalsmith-collections` options, but
+ *                                         with an additional key `permalink`
+ *                                         which defines the permalink pattern
+ *                                         for each individual collection.
+ * @param {Object} [options.markdown] - `metalsmith-markdown` options.
+ * @param {Object} [options.layouts] - `metalsmith-layouts` options. This object
+ *                                     is automatically merged with
+ *                                     `options.{engine_name}`, where
+ *                                     {engine_name} is the value for
+ *                                     `options.layouts.engine`.
+ * @param {Object} [options.inPlace] - `metalsmith-in-place` options. This
+ *                                     object is automatically merged with
+ *                                     `options.{engine_name}`, where
+ *                                     {engine_name} is the value for
+ *                                     `options.inPlace.engine`.
+ * @param {Object} [options.sitemap] - `metalsmith-mapsite` options.
+ * @param {boolean} [extendsDefaults=true] - Specifies whether array values are
  *                                            concatenated when merging config
  *                                            options with defaults.
  *
- * @return {Function} - A function that returns a Gulp stream.
+ * @return {Function} - Async function that performs the Metalsmith tasks.
  */
 module.exports = function(options, extendsDefaults) {
   if (typeof extendsDefaults !== 'boolean') extendsDefaults = true;
