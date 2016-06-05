@@ -1,0 +1,7 @@
+node_modules
+!.keep
+package
+*.tgz
+npm-debug.log
+dump.rdb
+.DS_STORE
