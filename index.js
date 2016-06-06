@@ -20,7 +20,7 @@ const sequence = require('run-sequence');
 const sitemap = require('metalsmith-mapsite');
 const util = require('gulp-util');
 
-const FILE_EXTENSIONS = ['html', 'htm', 'md', 'php'];
+const FILE_EXTENSIONS = ['html', 'htm', 'md', 'php', 'jade', 'pug'];
 
 const DEFAULT_CONFIG = {
   base: undefined,
@@ -109,28 +109,33 @@ const DEFAULT_CONFIG = {
 module.exports = function(options, extendsDefaults) {
   if (typeof extendsDefaults !== 'boolean') extendsDefaults = true;
 
-  // Set defaults based on options before merging.
-  if (options.src) {
-    DEFAULT_CONFIG.watch = {
-      files: [$.glob('**/*', { base: $.glob(options.src, { base: options.base }), exts: FILE_EXTENSIONS })]
-    }
-  }
-
-  const config = $.config(options, DEFAULT_CONFIG, extendsDefaults);
   let isWatching = false;
-
-  // Set defaults after merging.
-  if (!_.get(config, 'layouts.directory')) _.set(config, 'layouts.directory', path.join(config.src, 'layouts'));
 
   return function(callback) {
     const taskName = this.seq[0];
+
+    // Set defaults based on options before merging.
+    if (options.src) {
+      DEFAULT_CONFIG.watch = {
+        files: [$.glob('**/*', { base: $.glob(options.src, { base: options.base }), exts: FILE_EXTENSIONS })],
+        tasks: [taskName]
+      }
+    }
+
+    const config = $.config(options, DEFAULT_CONFIG, extendsDefaults);
+
+    // Set defaults after merging.
+    if (!_.get(config, 'layouts.directory')) _.set(config, 'layouts.directory', path.join(config.src, 'layouts'));
+
     const shouldWatch = (util.env['watch'] || util.env['w']) && (config.watch !== false);
     const src = $.glob(config.src, { base: config.base });
     const dest = $.glob('', { base: config.dest });
 
     if (shouldWatch && !isWatching) {
       isWatching = true;
-      this.watch((config.watch && config.watch.files) || src, () => { sequence.use(this).apply(null, [].concat((config.watch && config.watch.tasks) || [taskName])); });
+      this.watch((config.watch && config.watch.files) || $.glob('**/*', { base: config.src, exts: FILE_EXTENSIONS }), () => {
+        sequence.use(this).apply(null, [].concat((config.watch && config.watch.tasks) || [taskName]));
+      });
     }
 
     // Generate default `metalsmith-permalinks` linksets.
