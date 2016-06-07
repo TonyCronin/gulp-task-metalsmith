@@ -101,8 +101,8 @@ const DEFAULT_CONFIG = {
  *                                     `options.inPlace.engine`.
  * @param {Object} [options.sitemap] - `metalsmith-mapsite` options.
  * @param {boolean} [extendsDefaults=true] - Specifies whether array values are
- *                                            concatenated when merging config
- *                                            options with defaults.
+ *                                           concatenated when merging config
+ *                                           options with defaults.
  *
  * @return {Function} - Async function that performs the Metalsmith tasks.
  */
