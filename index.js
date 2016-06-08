@@ -38,7 +38,7 @@ const DEFAULT_CONFIG = {
     directory: undefined // Defaults to `config.src`/layouts in runtime.
   },
   inPlace: {
-    pattern: undefined, // Path relative to `config.src`
+    pattern: '**/*.jade',
     engine: 'jade',
     rename: true
   },
