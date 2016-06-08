@@ -26,7 +26,7 @@ const DEFAULT_CONFIG = {
   base: undefined,
   src: undefined,
   dest: undefined,
-  ignore: ['layouts', 'includes'],
+  ignore: ['layouts', 'includes', '.DS_Store'],
   watch: undefined,
   i18n: undefined,
   metadata: undefined,
@@ -34,15 +34,15 @@ const DEFAULT_CONFIG = {
   markdown: undefined,
   layouts: {
     pattern: undefined, // Path relative to `config.src`
-    engine: 'pug',
+    engine: 'jade',
     directory: undefined // Defaults to `config.src`/layouts in runtime.
   },
   inPlace: {
     pattern: undefined, // Path relative to `config.src`
-    engine: 'pug',
+    engine: 'jade',
     rename: true
   },
-  pug: {
+  jade: {
     pretty: true
   },
   sitemap: {
@@ -51,7 +51,7 @@ const DEFAULT_CONFIG = {
   },
   envs: {
     production: {
-      pug: {
+      jade: {
         pretty: false
       }
     }
@@ -68,9 +68,8 @@ const DEFAULT_CONFIG = {
  *                               from.
  * @param {string} options.dest - Path of destination directory to write files
  *                                to.
- * @param {Array} [options.ignore=['layouts', 'includes']] - Path(s) relative to
- *                                                           `options.src` to
- *                                                           ignore.
+ * @param {Array} [options.ignore] - Path(s) relative to `options.src` to
+ *                                   ignore.
  * @param {Object} [options.watch] - Options that define the file watching
  *                                   behavior. If set to `false`, watching will
  *                                   be disabled even if the CLI flag is set.

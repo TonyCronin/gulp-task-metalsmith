@@ -79,6 +79,13 @@ Default: `undefined`
 
 Path of destination directory to write files to.
 
+##### `options.ignore`
+
+Type: `Array`<br>
+Default: `['layouts', 'includes', '.DS_Store']`
+
+Path(s) relative to `options.src` to ignore.
+
 ##### `options.watch`
 
 Type: `Object` or `boolean`
