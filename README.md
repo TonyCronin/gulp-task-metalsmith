@@ -29,34 +29,15 @@ $ gulp views
 
 ## API
 
-### `fonts(options[, extendsDefaults])`
+### `metalsmith(options[, extendsDefaults])`
+
+Returns: `Function`
 
 #### `options`
 
 Type: `Object`
 
-Options that define the behavior of this task. You can override options for specific `NODE_ENV` environments by putting the same option inside `options.envs.{NODE_ENV}`. For example:
-
-```js
-{
-  src: '**/*',
-  envs: {
-    production: {
-      src: 'foo/**/*'
-    }
-  }
-}
-```
-
-...would give you the following when `NODE_ENV` is `production`:
-
-```js
-{
-  src: 'foo/**/*'
-}
-```
-
-When `NODE_ENV` is blank, `production` environment is assumed.
+Options that define the behavior of this task. This object is parsed by `config()` in [`gulp-task-helpers`](https://www.npmjs.com/package/gulp-task-helpers), so you can target specific `NODE_ENV` environments.
 
 ##### `options.base`
 
@@ -65,14 +46,14 @@ Default: `undefined`
 
 If specified, this is the base path for the source files to emit into the stream. Patterns defined in `options.src` will be relative to this path.
 
-##### `options.src` (required)
+##### `options.src`
 
 Type: `string``<br>
 Default: `undefined`
 
 Path of directory where Metalsmith should read files from, relative to `options.base` if specified.
 
-##### `options.dest` (required)
+##### `options.dest`
 
 Type: `string`<br>
 Default: `undefined`
@@ -172,7 +153,7 @@ Options for [`metalsmith-mapsite`](https://www.npmjs.com/package/metalsmith-maps
 Type: `boolean`<br>
 Default: `true`
 
-This module has a default config provided for you. When you pass in your own config via the `options` parameter, the module resolves your config with the default config by using `lodash`(https://lodash.com/)'s `merge` function, which doesn't concatenate array values. If `extendsDefaults` is set to `true`, array values will be concatenated.
+Maps to `useConcat` param in `config()` of [`gulp-task-helpers`](https://www.npmjs.com/package/gulp-task-helpers).
 
 ## Watching for Changes
 
@@ -182,7 +163,7 @@ You can pass a `--watch` or `--w` flag to the Gulp command to enable file watchi
 $ gulp views --watch
 ```
 
-By default, files that were emitted as source files will be marked for watching and the task name assigned to this module will be executed whenever a file changes. To override this behavior use `options.watch`.
+By default, files that were emitted as source files will be marked for watching and the task name assigned to this module will be executed whenever a file changes. To override this behavior see `options.watch`.
 
 ## License
 

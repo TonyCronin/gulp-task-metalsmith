@@ -1,8 +1,7 @@
 // (c) VARIANTE
 /**
- * @file Gulp task for processing fonts files, with the option to watch for
- *       changes by passing either `--watch` or `--w` flag when running the
- *       task using the CLI.
+ * @file Gulp task for processing template files using Metalsmith. Option to
+ *       watch for changes by passing either `--watch` or `--w` flag in the CLI.
  */
 
 const $ = require('gulp-task-helpers');
@@ -99,15 +98,12 @@ const DEFAULT_CONFIG = {
  *                                     {engine_name} is the value for
  *                                     `options.inPlace.engine`.
  * @param {Object} [options.sitemap] - `metalsmith-mapsite` options.
- * @param {boolean} [extendsDefaults=true] - Specifies whether array values are
- *                                           concatenated when merging config
- *                                           options with defaults.
+ * @param {boolean} [extendsDefaults=true] - Maps to `useConcat` param in
+ *                                           `gulp-task-helpers`#config.
  *
  * @return {Function} - Async function that performs the Metalsmith tasks.
  */
 module.exports = function(options, extendsDefaults) {
-  if (typeof extendsDefaults !== 'boolean') extendsDefaults = true;
-
   let isWatching = false;
 
   return function(callback) {
@@ -121,7 +117,7 @@ module.exports = function(options, extendsDefaults) {
       }
     }
 
-    const config = $.config(options, DEFAULT_CONFIG, extendsDefaults);
+    const config = $.config(options, DEFAULT_CONFIG, (typeof extendsDefaults !== 'boolean') || extendsDefaults);
 
     // Set defaults after merging.
     if (!_.get(config, 'layouts.directory')) _.set(config, 'layouts.directory', path.join(config.src, 'layouts'));
