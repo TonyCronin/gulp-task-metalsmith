@@ -1,4 +1,4 @@
-# gulp-task-metalsmith [![Circle CI](https://circleci.com/gh/VARIANTE/gulp-task-metalsmith/tree/master.svg?style=svg)](https://circleci.com/gh/VARIANTE/gulp-task-metalsmith/tree/master) [![npm version](https://badge.fury.io/js/gulp-task-metalsmith.svg)](https://badge.fury.io/js/gulp-task-metalsmith)
+# gulp-task-metalsmith [![Circle CI](https://circleci.com/gh/andrewscwei/gulp-task-metalsmith/tree/master.svg?style=svg)](https://circleci.com/gh/andrewscwei/gulp-task-metalsmith/tree/master) [![npm version](https://badge.fury.io/js/gulp-task-metalsmith.svg)](https://badge.fury.io/js/gulp-task-metalsmith)
 
 Gulp task for processing template files with Metalsmith plugins, option to watch source files for changes. Built-in plugins are executed in the following order:
 

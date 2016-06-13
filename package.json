@@ -1,11 +1,11 @@
 {
   "name": "gulp-task-metalsmith",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Gulp task for processing template files with Metalsmith",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/VARIANTE/gulp-task-metalsmith.git"
+    "url": "https://github.com/andrewscwei/gulp-task-metalsmith.git"
   },
   "files": [
     "index.js"
