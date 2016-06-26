@@ -1,0 +1,18 @@
+extends /layouts/base
+
+block body
+  h1= title
+  h2= m(date).format('MMM DD')
+  h3 Tags
+  nav.horizontal
+    each tag in tags
+      li: a(href=`/blog/${tag}`)= tag
+
+  != contents
+
+  nav.horizontal
+    if previous
+      li: a(href=previous.path) Previous: #{previous.title}
+    if next
+      li: a(href=next.path) Next: #{next.title}
+

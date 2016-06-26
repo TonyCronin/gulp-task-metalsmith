@@ -3,11 +3,12 @@
 Gulp task for processing template files with Metalsmith plugins, option to watch source files for changes. Built-in plugins are executed in the following order:
 
 1. [metalsmith-collections](https://www.npmjs.com/package/metalsmith-collections)
-2. [metalsmith-markdown](https://www.npmjs.com/package/metalsmith-markdown)
-3. [metalsmith-layouts](https://www.npmjs.com/package/metalsmith-layouts)
-4. [metalsmith-in-place](https://www.npmjs.com/package/metalsmith-in-place)
-5. [metalsmith-permalinks](https://www.npmjs.com/package/metalsmith-permalinks)
-6. [metalsmith-mapsite](https://www.npmjs.com/package/metalsmith-mapsite)
+2. [metalsmith-tags](https://www.npmjs.com/package/metalsmith-tags)
+3. [metalsmith-markdown](https://www.npmjs.com/package/metalsmith-markdown)
+4. [metalsmith-layouts](https://www.npmjs.com/package/metalsmith-layouts)
+5. [metalsmith-in-place](https://www.npmjs.com/package/metalsmith-in-place)
+6. [metalsmith-permalinks](https://www.npmjs.com/package/metalsmith-permalinks)
+7. [metalsmith-sitemap](https://www.npmjs.com/package/metalsmith-sitemap)
 
 This task also has built-in support for [i18n](https://www.npmjs.com/package/i18n).
 
@@ -106,7 +107,19 @@ Metadata for all templates.
 Type: `Object`<br>
 Default: `undefined`
 
-Options for [`metalsmith-collections`](https://www.npmjs.com/package/metalsmith-collections), with an additional key `permalink` which defines the permalink pattern for each individual collection.
+Options for [`metalsmith-collections`](https://www.npmjs.com/package/metalsmith-collections), with two additional keys: `permalink`—defines the permalink pattern for each individual collection, and `paginate`—options for [`metalsmith-pagination`](https://www.npmjs.com/package/metalsmith-pagination) for the current collection.
+
+##### `options.tags`
+
+Type: `Object`<br>
+Default:
+```js
+{
+  skipMetadata: true
+}
+```
+
+Options for [`metalsmith-tags`](https://www.npmjs.com/package/metalsmith-tags).
 
 ##### `options.markdown`
 

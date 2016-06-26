@@ -7,16 +7,22 @@
 const $ = require('gulp-task-helpers');
 const _ = require('lodash');
 const collections = require('metalsmith-collections');
+const pagination = require('metalsmith-pagination');
 const fs = require('fs-extra');
 const i18n = require('i18n');
 const inPlace = require('metalsmith-in-place');
 const layouts = require('metalsmith-layouts');
 const markdown = require('metalsmith-markdown');
+const metadata = require('./plugins/metadata');
 const metalsmith = require('metalsmith');
 const path = require('path');
+const pathfinder = require('./plugins/pathfinder');
 const permalinks = require('metalsmith-permalinks');
+const reporter = require('./plugins/reporter');
+const resolve = require('./plugins/resolve');
 const sequence = require('run-sequence');
-const sitemap = require('metalsmith-mapsite');
+const sitemap = require('metalsmith-sitemap');
+const tags = require('metalsmith-tags');
 const util = require('gulp-util');
 
 const FILE_EXTENSIONS = ['html', 'htm', 'md', 'php', 'jade', 'pug'];
@@ -28,28 +34,42 @@ const DEFAULT_CONFIG = {
   ignore: ['layouts', 'includes', '.DS_Store'],
   watch: undefined,
   i18n: undefined,
-  metadata: undefined,
+  metadata: {},
   collections: undefined,
+  tags: {
+    skipMetadata: true
+  },
   markdown: undefined,
   layouts: {
     pattern: undefined, // Path relative to `config.src`
-    engine: 'jade',
+    engine: 'pug',
     directory: undefined // Defaults to `config.src`/layouts in runtime.
   },
   inPlace: {
-    pattern: '**/*.jade',
-    engine: 'jade',
+    pattern: '**/*.pug',
+    engine: 'pug',
     rename: true
+  },
+  pug: {
+    pretty: true
   },
   jade: {
     pretty: true
   },
   sitemap: {
     hostname: undefined,
+    pattern: [
+      '**/*.html',
+      '!**/404.html',
+      '!**/500.html'
+    ],
     omitIndex: true
   },
   envs: {
     production: {
+      pug: {
+        pretty: false
+      },
       jade: {
         pretty: false
       }
@@ -86,6 +106,8 @@ const DEFAULT_CONFIG = {
  *                                         with an additional key `permalink`
  *                                         which defines the permalink pattern
  *                                         for each individual collection.
+ * @param {Object} [options.tags] - `metalsmith-tags` options, with some custom
+ *                                  defaults.
  * @param {Object} [options.markdown] - `metalsmith-markdown` options.
  * @param {Object} [options.layouts] - `metalsmith-layouts` options. This object
  *                                     is automatically merged with
@@ -115,6 +137,9 @@ module.exports = function(options, extendsDefaults) {
         files: [$.glob('**/*', { base: $.glob(options.src, { base: options.base }), exts: FILE_EXTENSIONS })],
         tasks: [taskName]
       }
+
+      DEFAULT_CONFIG.jade.basedir = $.glob(options.src, { base: options.base });
+      DEFAULT_CONFIG.pug.basedir = $.glob(options.src, { base: options.base });
     }
 
     const config = $.config(options, DEFAULT_CONFIG, (typeof extendsDefaults !== 'boolean') || extendsDefaults);
@@ -133,28 +158,91 @@ module.exports = function(options, extendsDefaults) {
       });
     }
 
-    // Generate default `metalsmith-permalinks` linksets.
-    let linksets = [];
+    const layoutsConfig = _.merge(config.layouts, _.get(config, _.get(config, 'layouts.engine')));
+    const inPlaceConfig = _.merge(config.inPlace, _.get(config, _.get(config, 'inPlace.engine')));
+    const permalinksConfig = { relative: false, linksets: [] };
+    const collectionsConfig = _.get(config, 'collections');
+    const paginationConfig = {};
+    const tagsConfig = _.get(config, 'tags');
+    const metadataConfig = {
+      'error-pages': {
+        pattern: '**/{500,404}.pug',
+        metadata: {
+          permalink: false
+        }
+      }
+    };
 
-    if (_.get(config, 'collections')) {
-      for (let collection in _.get(config, 'collections')) {
-        let pattern = _.get(config, `collections.${collection}.permalink`) || path.join(collection, ':slug');
+    if (tagsConfig) {
+      if ((typeof tagsConfig.layout === 'string') && _.isEmpty(path.extname(tagsConfig.layout)))
+        tagsConfig.layout = `${tagsConfig.layout}.${layoutsConfig.engine}`;
+
+      if (typeof tagsConfig.path === 'string' && _.isEmpty(path.extname(tagsConfig.path))) {
+        if (!_.endsWith(tagsConfig.path, '/')) tagsConfig.path = `${tagsConfig.path}/`;
+        tagsConfig.path = `${tagsConfig.path}index.html`;
+      }
+    }
+
+    if (collectionsConfig) {
+      for (let collectionName in collectionsConfig) {
+        const data = _.get(collectionsConfig, collectionName);
+        let pattern = _.get(data, 'pattern');
+        let permalink = _.get(data, 'permalink') || path.join(collectionName, ':slug');
+        let date = _.get(data, 'date');
+        let paginate = _.get(data, 'paginate');
+
+        if ((typeof data.layout === 'string') && _.isEmpty(path.extname(data.layout))) {
+          data.layout = `${data.layout}.${layoutsConfig.engine}`;
+        }
+
+        if (data.metadata && (typeof data.metadata.layout === 'string') && _.isEmpty(path.extname(data.metadata.layout))) {
+          data.metadata.layout = `${data.metadata.layout}.${layoutsConfig.engine}`;
+        }
+
+        if (paginate) {
+          if ((typeof paginate.layout === 'string') && _.isEmpty(path.extname(paginate.layout)))
+            paginate.layout = `${paginate.layout}.${layoutsConfig.engine}`;
+
+          if (typeof paginate.path === 'string' && _.isEmpty(path.extname(paginate.path))) {
+            if (!_.endsWith(paginate.path, '/')) paginate.path = `${paginate.path}/`;
+            paginate.path = `${paginate.path}index.html`;
+          }
+
+          if (typeof paginate.first === 'string' && _.isEmpty(path.extname(paginate.first))) {
+            if (!_.endsWith(paginate.first, '/')) paginate.first = `${paginate.first}/`;
+            paginate.first = `${paginate.first}index.html`;
+            paginate.noPageOne = true;
+          }
+
+          paginationConfig[`collections.${collectionName}`] = paginate;
+        }
 
         if (pattern) {
-          if (_.startsWith(pattern, '/')) pattern = pattern.substr(1);
-          linksets.push({
-            match: { collection: collection },
-            pattern: pattern
+          metadataConfig[collectionName] = {
+            pattern: pattern,
+            metadata: _.merge(data.metadata || {}, {
+              layout: data.layout
+            })
+          }
+        }
+
+        if (permalink) {
+          if (_.startsWith(permalink, '/')) permalink = permalink.substr(1);
+          permalinksConfig.linksets.push({
+            match: { collection: collectionName },
+            pattern: permalink,
+            date: date
           });
         }
       }
     }
 
     // Spoof i18n metadata so it can bind its API.
-    config.metadata.headers = {};
-
-    i18n.configure(config.i18n);
-    i18n.init(config.metadata);
+    if (config.i18n) {
+      config.metadata.headers = {};
+      i18n.configure(config.i18n);
+      i18n.init(config.metadata);
+    }
 
     let m = metalsmith(config.base || __dirname)
       .clean(false)
@@ -162,26 +250,17 @@ module.exports = function(options, extendsDefaults) {
       .ignore(config.ignore)
       .destination(config.dest)
       .metadata(config.metadata)
-      .use(function(files, metalsmith, done) {
-        // Generate status report.
-        Object.keys(files).forEach(file => util.log(util.colors.blue('[metalsmith]'), `Processing file: ${file}`));
-        done();
-      })
       .use(collections(config.collections))
+      .use(tags(config.tags))
+      .use(pagination(paginationConfig))
+      .use(metadata(metadataConfig))
       .use(markdown(config.markdown))
-      .use(layouts(_.merge(config.layouts, _.get(config, _.get(config, 'layouts.engine')))))
-      .use(inPlace(_.merge(config.inPlace, _.get(config, _.get(config, 'inPlace.engine')))))
-      .use(function(files, metalsmith, done) {
-        // Disable permalinks for certain files.
-        let regex = new RegExp(`^(404|500)\.(${FILE_EXTENSIONS.join('|')})`);
-
-        Object.keys(files).forEach(file => {
-          if (regex.test(path.basename(file))) files[file].permalink = false;
-        });
-
-        done();
-      })
-      .use(permalinks({ relative: false, linksets: linksets }));
+      .use(permalinks(permalinksConfig))
+      .use(pathfinder(config.collections))
+      .use(layouts(layoutsConfig))
+      .use(inPlace(inPlaceConfig))
+      .use(permalinks(permalinksConfig))
+      .use(reporter());
 
     if (!_.isEmpty(_.get(config, 'sitemap.hostname'))) m = m.use(sitemap(config.sitemap));
 
@@ -201,3 +280,5 @@ module.exports = function(options, extendsDefaults) {
     });
   }
 };
+
+

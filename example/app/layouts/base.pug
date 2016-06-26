@@ -1,0 +1,56 @@
+doctype html
+html
+  head
+    title= (title || 'gulp-task-metalsmith')
+    meta(charset='utf-8')
+    style.
+      body {
+        background-color: #eee;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+      }
+      * {
+        font-family: 'Roboto Slab', 'Helvetica Neue', 'Helvetica', 'sans-serif';
+        font-weight: 100;
+        list-style: none;
+      }
+      a {
+        text-decoration: none;
+        color: #44a2b7;
+      }
+      a:hover {
+        opacity: .6;
+      }
+      h1, p {
+        width: 100%;
+        max-width: 400px;
+      }
+      nav {
+        display: flex;
+        padding: 30px;
+        width: 100%;
+      }
+      nav.horizontal {
+        flex-direction: row;
+      }
+      nav.vertical {
+        flex-direction: column;
+      }
+      nav.horizontal li {
+        margin-right: 20px;
+      }
+      nav.vertical li {
+        margin-bottom: 20px;
+      }
+      div.wrapper {
+        padding: 30px;
+      }
+  body
+    nav.horizontal
+      li: a(href='/') Home
+      li: a(href='/about/') About
+      li: a(href='/blog/') Blog
+    div.wrapper
+      block body

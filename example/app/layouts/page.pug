@@ -1,0 +1,19 @@
+extends /layouts/base
+
+block body
+  h1 Blog
+  h2 Page #{pagination.num}
+
+  if tag
+    h3 Tag #{tag}
+
+  nav.vertical
+    each post in pagination.files
+      li: a(href=post.path)= post.title
+  nav
+    if pagination.previous
+      a(href=pagination.previous.path) Previous Page
+    if pagination.next
+      a(href=pagination.next.path) Next Page
+
+
