@@ -149,12 +149,7 @@ Options for [`metalsmith-collections`](https://www.npmjs.com/package/metalsmith-
 ##### `options.tags`
 
 Type: `Object`<br>
-Default:
-```js
-{
-  skipMetadata: true
-}
-```
+Default: `undefined`
 
 Options for [`metalsmith-tags`](https://www.npmjs.com/package/metalsmith-tags).
 

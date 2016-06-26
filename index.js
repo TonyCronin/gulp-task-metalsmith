@@ -36,9 +36,7 @@ const DEFAULT_CONFIG = {
   i18n: undefined,
   metadata: {},
   collections: undefined,
-  tags: {
-    skipMetadata: true
-  },
+  tags: undefined,
   markdown: undefined,
   layouts: {
     pattern: undefined, // Path relative to `config.src`
@@ -181,6 +179,8 @@ module.exports = function(options, extendsDefaults) {
         if (!_.endsWith(tagsConfig.path, '/')) tagsConfig.path = `${tagsConfig.path}/`;
         tagsConfig.path = `${tagsConfig.path}index.html`;
       }
+
+      if (typeof tagsConfig.skipMetadata !== 'boolean') tagsConfig.skipMetadata = true;
     }
 
     if (collectionsConfig) {
@@ -252,8 +252,12 @@ module.exports = function(options, extendsDefaults) {
       .ignore(config.ignore)
       .destination(config.dest)
       .metadata(config.metadata)
-      .use(collections(config.collections))
-      .use(tags(config.tags))
+      .use(collections(config.collections));
+
+    if (config.tags)
+      m = m.use(tags(config.tags));
+
+    m = m
       .use(pagination(paginationConfig))
       .use(metadata(metadataConfig))
       .use(markdown(config.markdown))
@@ -264,7 +268,8 @@ module.exports = function(options, extendsDefaults) {
       .use(permalinks(permalinksConfig))
       .use(reporter());
 
-    if (!_.isEmpty(_.get(config, 'sitemap.hostname'))) m = m.use(sitemap(config.sitemap));
+    if (!_.isEmpty(_.get(config, 'sitemap.hostname')))
+      m = m.use(sitemap(config.sitemap));
 
     m.build(function(err) {
       if (err) {
