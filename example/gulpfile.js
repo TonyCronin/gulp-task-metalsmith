@@ -17,7 +17,7 @@ gulp.task('views', metalsmith({
       pattern: 'blog/**/*.md',
       sortBy: 'date',
       reverse: true,
-      permalink: '/blog/:title/',
+      permalink: 'blog/:title/',
       layout: 'post',
       paginate: {
         perPage: 5,

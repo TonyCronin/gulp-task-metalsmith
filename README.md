@@ -4,23 +4,60 @@ Gulp task for processing template files with Metalsmith plugins, option to watch
 
 1. [metalsmith-collections](https://www.npmjs.com/package/metalsmith-collections)
 2. [metalsmith-tags](https://www.npmjs.com/package/metalsmith-tags)
-3. [metalsmith-markdown](https://www.npmjs.com/package/metalsmith-markdown)
-4. [metalsmith-layouts](https://www.npmjs.com/package/metalsmith-layouts)
-5. [metalsmith-in-place](https://www.npmjs.com/package/metalsmith-in-place)
-6. [metalsmith-permalinks](https://www.npmjs.com/package/metalsmith-permalinks)
-7. [metalsmith-sitemap](https://www.npmjs.com/package/metalsmith-sitemap)
+3. [metalsmith-pagination](https://www.npmjs.com/package/metalsmith-pagination)
+4. [metalsmith-markdown](https://www.npmjs.com/package/metalsmith-markdown)
+5. [metalsmith-layouts](https://www.npmjs.com/package/metalsmith-layouts)
+6. [metalsmith-in-place](https://www.npmjs.com/package/metalsmith-in-place)
+7. [metalsmith-permalinks](https://www.npmjs.com/package/metalsmith-permalinks)
+8. [metalsmith-sitemap](https://www.npmjs.com/package/metalsmith-sitemap)
 
 This task also has built-in support for [i18n](https://www.npmjs.com/package/i18n).
 
 ## Usage
 
 ```js
+import _ from 'lodash';
+import browserSync from 'browser-sync';
 import gulp from 'gulp';
 import metalsmith from 'gulp-task-metalsmith';
+import moment from 'moment';
+import path from 'path';
 
 gulp.task('views', metalsmith({
-  src: 'app/views/**/*',
-  dest: 'public'
+  src: path.join(__dirname, 'app'),
+  dest: path.join(__dirname, 'public'),
+  metadata: {
+    _: _,
+    m: moment
+  },
+  collections: {
+    blog: {
+      pattern: 'blog/**/*.md',
+      sortBy: 'date',
+      reverse: true,
+      permalink: '/blog/:title/',
+      layout: 'post',
+      paginate: {
+        perPage: 5,
+        layout: 'page',
+        path: 'blog/:num/',
+        first: 'blog/'
+      }
+    }
+  },
+  tags: {
+    path: 'blog/:tag',
+    layout: 'page',
+    sortBy: 'date',
+    reverse: true,
+    perPage: 2,
+  },
+  watch: {
+    tasks: [browserSync.reload]
+  },
+  sitemap: {
+    hostname: 'http://www.example.com'
+  }
 }));
 ```
 
