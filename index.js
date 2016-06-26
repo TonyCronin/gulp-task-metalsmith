@@ -191,7 +191,9 @@ module.exports = function(options, extendsDefaults) {
         let date = _.get(data, 'date');
         let paginate = _.get(data, 'paginate');
 
-        if ((typeof data.layout === 'string') && _.isEmpty(path.extname(data.layout))) {
+        if (typeof data.layout !== 'string') data.layout = collectionName;
+
+        if (_.isEmpty(path.extname(data.layout))) {
           data.layout = `${data.layout}.${layoutsConfig.engine}`;
         }
 
