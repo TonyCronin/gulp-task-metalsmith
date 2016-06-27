@@ -128,19 +128,20 @@ module.exports = function(options, extendsDefaults) {
 
   return function(callback) {
     const taskName = this.seq[0];
+    const defaults = _.cloneDeep(DEFAULT_CONFIG);
 
     // Set defaults based on options before merging.
     if (options.src) {
-      DEFAULT_CONFIG.watch = {
+      defaults.watch = {
         files: [$.glob('**/*', { base: $.glob(options.src, { base: options.base }), exts: FILE_EXTENSIONS })],
         tasks: [taskName]
       }
 
-      DEFAULT_CONFIG.jade.basedir = $.glob(options.src, { base: options.base });
-      DEFAULT_CONFIG.pug.basedir = $.glob(options.src, { base: options.base });
+      defaults.jade.basedir = $.glob(options.src, { base: options.base });
+      defaults.pug.basedir = $.glob(options.src, { base: options.base });
     }
 
-    const config = $.config(options, DEFAULT_CONFIG, (typeof extendsDefaults !== 'boolean') || extendsDefaults);
+    const config = $.config(options, defaults, (typeof extendsDefaults !== 'boolean') || extendsDefaults);
 
     // Set defaults after merging.
     if (!_.get(config, 'layouts.directory')) _.set(config, 'layouts.directory', path.join(config.src, 'layouts'));
