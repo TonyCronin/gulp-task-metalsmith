@@ -1,6 +1,6 @@
 {
   "name": "gulp-task-metalsmith",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Gulp task for processing template files with Metalsmith",
   "main": "index.js",
   "repository": {
@@ -8,6 +8,7 @@
     "url": "https://github.com/andrewscwei/gulp-task-metalsmith.git"
   },
   "files": [
+    "helpers",
     "plugins",
     "index.js"
   ],
@@ -41,7 +42,9 @@
   },
   "devDependencies": {
     "gulp": "^3.9.1",
+    "marked": "^0.3.5",
     "moment": "^2.13.0",
+    "prismjs": "^1.5.1",
     "pug": "^2.0.0-beta3",
     "rimraf": "^2.5.2"
   }

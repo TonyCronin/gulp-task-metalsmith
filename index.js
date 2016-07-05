@@ -13,6 +13,7 @@ const i18n = require('i18n');
 const inPlace = require('metalsmith-in-place');
 const layouts = require('metalsmith-layouts');
 const markdown = require('metalsmith-markdown');
+const marked = require('./helpers/marked-helpers');
 const metadata = require('./plugins/metadata');
 const metalsmith = require('metalsmith');
 const path = require('path');
@@ -37,7 +38,10 @@ const DEFAULT_CONFIG = {
   metadata: {},
   collections: undefined,
   tags: undefined,
-  markdown: undefined,
+  markdown: {
+    renderer: marked.renderer,
+    highlight: marked.highlight
+  },
   layouts: {
     pattern: undefined, // Path relative to `config.src`
     engine: 'pug',
