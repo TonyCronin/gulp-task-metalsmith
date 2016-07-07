@@ -7,18 +7,18 @@ const minimatch = require('minimatch');
  * Merges additional metadata into a file if that file matches the specified
  * pattern.
  *
- * @param  {Object} metadata - Each value in this object is a file pattern with
- *                             additional metadata to be merged if a file
- *                             matches that file pattern.
+ * @param  {Object} options - Each value in this object is a file pattern with
+ *                            additional metadata to be merged if a file matches
+ *                            that file pattern.
  *
  * @return {Function} Metalsmith plugin.
  */
-module.exports = function(metadata) {
+module.exports = function(options) {
   return function(files, metalsmith, done) {
-    if (metadata) {
+    if (options) {
       Object.keys(files).forEach(file => {
         const data = files[file];
-        _.merge(data, matchedMetadata(file, metadata) || {});
+        _.merge(data, matchedMetadata(file, options) || {});
       });
     }
 

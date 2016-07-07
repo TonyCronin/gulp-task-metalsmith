@@ -12,6 +12,7 @@ gulp.task('views', metalsmith({
     _: _,
     m: moment
   },
+  mathjax: true,
   collections: {
     blog: {
       pattern: 'blog/**/*.md',
@@ -19,6 +20,10 @@ gulp.task('views', metalsmith({
       reverse: true,
       permalink: 'blog/:title/',
       layout: 'post',
+      metadata: {
+        prism: true,
+        mathjax: true
+      },
       paginate: {
         perPage: 5,
         layout: 'page',

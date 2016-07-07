@@ -13,12 +13,13 @@ const i18n = require('i18n');
 const inPlace = require('metalsmith-in-place');
 const layouts = require('metalsmith-layouts');
 const markdown = require('metalsmith-markdown');
-const marked = require('./helpers/marked-helpers');
 const metadata = require('./plugins/metadata');
+const mathjax = require('./plugins/mathjax');
 const metalsmith = require('metalsmith');
 const path = require('path');
 const pathfinder = require('./plugins/pathfinder');
 const permalinks = require('metalsmith-permalinks');
+const prism = require('./plugins/prism');
 const reporter = require('./plugins/reporter');
 const resolve = require('./plugins/resolve');
 const sequence = require('run-sequence');
@@ -39,9 +40,9 @@ const DEFAULT_CONFIG = {
   collections: undefined,
   tags: undefined,
   markdown: {
-    renderer: marked.renderer,
-    highlight: marked.highlight
+    langPrefix: 'language-'
   },
+  mathjax: false,
   layouts: {
     pattern: undefined, // Path relative to `config.src`
     engine: 'pug',
@@ -111,6 +112,8 @@ const DEFAULT_CONFIG = {
  * @param {Object} [options.tags] - `metalsmith-tags` options, with some custom
  *                                  defaults.
  * @param {Object} [options.markdown] - `metalsmith-markdown` options.
+ * @param {Object|boolean} [options.mathjax] - Options for MathJax. If `false`,
+ *                                             MathJax will be disabled.
  * @param {Object} [options.layouts] - `metalsmith-layouts` options. This object
  *                                     is automatically merged with
  *                                     `options.{engine_name}`, where
@@ -121,7 +124,7 @@ const DEFAULT_CONFIG = {
  *                                     `options.{engine_name}`, where
  *                                     {engine_name} is the value for
  *                                     `options.inPlace.engine`.
- * @param {Object} [options.sitemap] - `metalsmith-mapsite` options.
+ * @param {Object} [options.sitemap] - `metalsmith-sitemap` options.
  * @param {boolean} [extendsDefaults=true] - Maps to `useConcat` param in
  *                                           `gulp-task-helpers`#config.
  *
@@ -270,6 +273,12 @@ module.exports = function(options, extendsDefaults) {
       .use(pathfinder(config.collections))
       .use(layouts(layoutsConfig))
       .use(inPlace(inPlaceConfig))
+      .use(prism(config.prism));
+
+    if (config.mathjax !== false)
+      m = m.use(mathjax((typeof config.mathjax === 'object') ? config.mathjax : {}));
+
+    m = m
       .use(permalinks(permalinksConfig))
       .use(reporter());
 

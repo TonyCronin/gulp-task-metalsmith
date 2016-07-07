@@ -5,3 +5,11 @@ tags: e, f
 ---
 
 This is post ten!
+
+```bash
+# Example Bash code
+mkdir /foo
+cd /foo
+touch bar.txt
+nano bar.txt
+```

@@ -11,7 +11,7 @@ Gulp task for processing template files with Metalsmith plugins, option to watch
 7. [metalsmith-permalinks](https://www.npmjs.com/package/metalsmith-permalinks)
 8. [metalsmith-sitemap](https://www.npmjs.com/package/metalsmith-sitemap)
 
-This task also has built-in support for [i18n](https://www.npmjs.com/package/i18n).
+This task also has built-in support for [i18n](https://www.npmjs.com/package/i18n), [Prism](http://prismjs.com/) and [MathJax](https://www.mathjax.org/).
 
 ## Usage
 
@@ -30,6 +30,7 @@ gulp.task('views', metalsmith({
     _: _,
     m: moment
   },
+  mathjax: true,
   collections: {
     blog: {
       pattern: 'blog/**/*.md',
@@ -186,12 +187,19 @@ Default:
 
 Options for [`metalsmith-in-place`](https://www.npmjs.com/package/metalsmith-in-place). This object is automatically merged with `options.{engine_name}`, where `{engine_name}` is the value for `options.inPlace.engine`.
 
-##### `options.mapsite`
+##### `options.mathjax`
+
+Type: `Object` or `boolean`<br>
+Default: `false`
+
+Options for [`mathjax-node`](https://www.npmjs.com/package/mathjax-node)'s `./lib/mj-page.js`. If `false`, MathJax will be disabled.
+
+##### `options.sitemap`
 
 Type: `Object`<br>
 Default: `undefined`
 
-Options for [`metalsmith-mapsite`](https://www.npmjs.com/package/metalsmith-mapsite).
+Options for [`metalsmith-sitemap`](https://www.npmjs.com/package/metalsmith-sitemap).
 
 #### `extendsDefaults`
 

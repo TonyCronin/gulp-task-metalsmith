@@ -5,3 +5,5 @@ tags: d
 ---
 
 This is post nine!
+
+\\(f(x)\\)
