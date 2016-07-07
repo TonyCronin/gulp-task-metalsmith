@@ -6,6 +6,7 @@ const jsdom = require('jsdom');
 const path = require('path');
 const util = require('gulp-util');
 const Prism = require('prismjs');
+require(`prismjs/components/prism-c`);
 
 /**
  * Metalsmith plugin for syntax highlighting code blocks using Prism.
