@@ -36,11 +36,11 @@ module.exports = function(options) {
             }
 
             MathJax.start();
-            MathJax.typeset(_.merge(options || {}, {
+            MathJax.typeset(_.merge({
               html: window.document.body.innerHTML,
               renderer: 'SVG',
               inputs: ['TeX']
-            }), result => {
+            }, options || {}), result => {
               window.document.body.innerHTML = result.html;
               const html = '<!DOCTYPE html>\n' + window.document.documentElement.outerHTML.replace(/^(\n|\s)*/, '');
               data.contents = new Buffer(html);
