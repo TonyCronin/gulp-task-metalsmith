@@ -13,6 +13,13 @@ gulp.task('views', metalsmith({
     m: moment
   },
   mathjax: true,
+  prism: {
+    lineNumbers: true,
+    showLanguage: true
+  },
+  related: {
+    pattern: 'blog/**/*.md'
+  },
   collections: {
     blog: {
       pattern: 'blog/**/*.md',

@@ -38,6 +38,9 @@ html
       nav.vertical {
         flex-direction: column;
       }
+      nav.horizontal span {
+        margin-right: 40px;
+      }
       nav.horizontal li {
         margin-right: 20px;
       }
@@ -48,6 +51,8 @@ html
         padding: 30px;
       }
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism-okaidia.min.css')
+    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/plugins/show-language/prism-show-language.min.css')
+    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/plugins/line-numbers/prism-line-numbers.min.css')
   body
     nav.horizontal
       li: a(href='/') Home

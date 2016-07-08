@@ -20,6 +20,7 @@ const path = require('path');
 const pathfinder = require('./plugins/pathfinder');
 const permalinks = require('metalsmith-permalinks');
 const prism = require('./plugins/prism');
+const related = require('metalsmith-related');
 const reporter = require('./plugins/reporter');
 const resolve = require('./plugins/resolve');
 const sequence = require('run-sequence');
@@ -41,6 +42,17 @@ const DEFAULT_CONFIG = {
   tags: undefined,
   markdown: {
     langPrefix: 'language-'
+  },
+  related: {
+    terms: 5,
+    max: 5,
+    threshold: 0,
+    pattern: undefined, // Path relative to `config.src`
+    text: (doc) => (doc.contents || doc.body || doc.markdown || doc.title || ((doc.tags instanceof Array) && doc.tags.join(', ')))
+  },
+  prism: {
+    lineNumbers: false,
+    showLanguage: false
   },
   mathjax: false,
   layouts: {
@@ -109,11 +121,16 @@ const DEFAULT_CONFIG = {
  *                                         with an additional key `permalink`
  *                                         which defines the permalink pattern
  *                                         for each individual collection.
+ * @param {Object|boolean} [options.related] - `metalsmith-related` options. If
+ *                                             `false`, plugin is disabled.
  * @param {Object} [options.tags] - `metalsmith-tags` options, with some custom
  *                                  defaults.
  * @param {Object} [options.markdown] - `metalsmith-markdown` options.
  * @param {Object|boolean} [options.mathjax] - Options for MathJax. If `false`,
  *                                             MathJax will be disabled.
+ * @param {Object|boolean} [options.prism] - Options for Prism. If `false`,
+ *                                           Prism highlighting will be
+ *                                           disabled.
  * @param {Object} [options.layouts] - `metalsmith-layouts` options. This object
  *                                     is automatically merged with
  *                                     `options.{engine_name}`, where
@@ -260,7 +277,8 @@ module.exports = function(options, extendsDefaults) {
       .ignore(config.ignore)
       .destination(config.dest)
       .metadata(config.metadata)
-      .use(collections(config.collections));
+      .use(collections(config.collections))
+      .use(related(config.related));
 
     if (config.tags)
       m = m.use(tags(config.tags));
@@ -272,8 +290,10 @@ module.exports = function(options, extendsDefaults) {
       .use(permalinks(permalinksConfig))
       .use(pathfinder(config.collections))
       .use(layouts(layoutsConfig))
-      .use(inPlace(inPlaceConfig))
-      .use(prism(config.prism));
+      .use(inPlace(inPlaceConfig));
+
+    if (config.prism !== false)
+      m = m.use(prism(config.prism));
 
     if (config.mathjax !== false)
       m = m.use(mathjax((typeof config.mathjax === 'object') ? config.mathjax : {}));

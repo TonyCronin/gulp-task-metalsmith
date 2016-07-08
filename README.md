@@ -3,13 +3,14 @@
 Gulp task for processing template files with Metalsmith plugins, option to watch source files for changes. Built-in plugins are executed in the following order:
 
 1. [metalsmith-collections](https://www.npmjs.com/package/metalsmith-collections)
-2. [metalsmith-tags](https://www.npmjs.com/package/metalsmith-tags)
-3. [metalsmith-pagination](https://www.npmjs.com/package/metalsmith-pagination)
-4. [metalsmith-markdown](https://www.npmjs.com/package/metalsmith-markdown)
-5. [metalsmith-layouts](https://www.npmjs.com/package/metalsmith-layouts)
-6. [metalsmith-in-place](https://www.npmjs.com/package/metalsmith-in-place)
-7. [metalsmith-permalinks](https://www.npmjs.com/package/metalsmith-permalinks)
-8. [metalsmith-sitemap](https://www.npmjs.com/package/metalsmith-sitemap)
+2. [metalsmith-related](https://www.npmjs.com/package/metalsmith-related)
+3. [metalsmith-tags](https://www.npmjs.com/package/metalsmith-tags)
+4. [metalsmith-pagination](https://www.npmjs.com/package/metalsmith-pagination)
+5. [metalsmith-markdown](https://www.npmjs.com/package/metalsmith-markdown)
+6. [metalsmith-layouts](https://www.npmjs.com/package/metalsmith-layouts)
+7. [metalsmith-in-place](https://www.npmjs.com/package/metalsmith-in-place)
+8. [metalsmith-permalinks](https://www.npmjs.com/package/metalsmith-permalinks)
+9. [metalsmith-sitemap](https://www.npmjs.com/package/metalsmith-sitemap)
 
 This task also has built-in support for [i18n](https://www.npmjs.com/package/i18n), [Prism](http://prismjs.com/) and [MathJax](https://www.mathjax.org/).
 
@@ -31,6 +32,10 @@ gulp.task('views', metalsmith({
     m: moment
   },
   mathjax: true,
+  prism: {
+    showLanguage: true,
+    lineNumbers: true
+  },
   collections: {
     blog: {
       pattern: 'blog/**/*.md',
@@ -154,6 +159,22 @@ Default: `undefined`
 
 Options for [`metalsmith-tags`](https://www.npmjs.com/package/metalsmith-tags).
 
+##### `options.related`
+
+Type: `Object`<br>
+Default: 
+```
+{
+  terms: 5,
+  max: 5,
+  threshold: 0,
+  pattern: undefined, 
+  text: (doc) => (doc.contents || doc.body || doc.markdown || doc.title || ((doc.tags instanceof Array) && doc.tags.join(', ')))
+}
+```
+
+Options for [`metalsmith-related`](https://www.npmjs.com/package/metalsmith-related).
+
 ##### `options.markdown`
 
 Type: `Object`<br>
@@ -186,6 +207,20 @@ Default:
 ```
 
 Options for [`metalsmith-in-place`](https://www.npmjs.com/package/metalsmith-in-place). This object is automatically merged with `options.{engine_name}`, where `{engine_name}` is the value for `options.inPlace.engine`.
+
+##### `options.prism`
+
+Type: `Object` or `boolean`<br>
+Default:
+
+```
+{
+  showLanguage: false,
+  lineNumbers: false
+}
+```
+
+Custom options for Prism. Currently only supports `showLanguage` and `lineNumbers`.
 
 ##### `options.mathjax`
 
