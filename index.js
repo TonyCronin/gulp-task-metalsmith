@@ -189,7 +189,7 @@ module.exports = function(options, extendsDefaults) {
     const tagsConfig = _.get(config, 'tags');
     const metadataConfig = {
       'error-pages': {
-        pattern: '**/{500,404}.pug',
+        pattern: '**/{500,404}.*',
         metadata: {
           permalink: false
         }
