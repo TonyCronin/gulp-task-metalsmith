@@ -7,7 +7,6 @@
 const $ = require('gulp-task-helpers');
 const _ = require('lodash');
 const collections = require('metalsmith-collections');
-const pagination = require('metalsmith-pagination');
 const fs = require('fs-extra');
 const i18n = require('i18n');
 const inPlace = require('metalsmith-in-place');
@@ -16,6 +15,8 @@ const markdown = require('metalsmith-markdown');
 const metadata = require('./plugins/metadata');
 const mathjax = require('./plugins/mathjax');
 const metalsmith = require('metalsmith');
+const noop = require('./plugins/noop');
+const pagination = require('metalsmith-pagination');
 const path = require('path');
 const pathfinder = require('./plugins/pathfinder');
 const permalinks = require('metalsmith-permalinks');
@@ -151,42 +152,16 @@ module.exports = function(options, extendsDefaults) {
   let isWatching = false;
 
   return function(callback) {
-    const taskName = this.seq[0];
-    const defaults = _.cloneDeep(DEFAULT_CONFIG);
-
-    // Set defaults based on options before merging.
-    if (options.src) {
-      defaults.watch = {
-        files: [$.glob('**/*', { base: $.glob(options.src, { base: options.base }), exts: FILE_EXTENSIONS })],
-        tasks: [taskName]
-      }
-
-      defaults.jade.basedir = $.glob(options.src, { base: options.base });
-      defaults.pug.basedir = $.glob(options.src, { base: options.base });
-    }
-
-    const config = $.config(options, defaults, (typeof extendsDefaults !== 'boolean') || extendsDefaults);
-
-    // Set defaults after merging.
-    if (!_.get(config, 'layouts.directory')) _.set(config, 'layouts.directory', path.join(config.src, 'layouts'));
-
+    const config = getConfig(this, options, extendsDefaults);
     const shouldWatch = (util.env['watch'] || util.env['w']) && (config.watch !== false);
-    const src = $.glob(config.src, { base: config.base });
-    const dest = $.glob('', { base: config.dest });
 
     if (shouldWatch && !isWatching) {
       isWatching = true;
       this.watch((config.watch && config.watch.files) || $.glob('**/*', { base: config.src, exts: FILE_EXTENSIONS }), () => {
-        sequence.use(this).apply(null, [].concat((config.watch && config.watch.tasks) || [taskName]));
+        sequence.use(this).apply(null, [].concat((config.watch && config.watch.tasks) || [this.seq[0]]));
       });
     }
 
-    const layoutsConfig = _.merge(config.layouts, _.get(config, _.get(config, 'layouts.engine')));
-    const inPlaceConfig = _.merge(config.inPlace, _.get(config, _.get(config, 'inPlace.engine')));
-    const permalinksConfig = { relative: false, linksets: [] };
-    const collectionsConfig = _.get(config, 'collections');
-    const paginationConfig = {};
-    const tagsConfig = _.get(config, 'tags');
     const metadataConfig = {
       'error-pages': {
         pattern: '**/{500,404}.*',
@@ -196,21 +171,36 @@ module.exports = function(options, extendsDefaults) {
       }
     };
 
-    if (tagsConfig) {
-      if ((typeof tagsConfig.layout === 'string') && _.isEmpty(path.extname(tagsConfig.layout)))
-        tagsConfig.layout = `${tagsConfig.layout}.${layoutsConfig.engine}`;
+    // Set defaults for metalsmith-layouts.
+    if (!_.get(config, 'layouts.directory')) _.set(config, 'layouts.directory', path.join(config.src, 'layouts'));
+    _.merge(config.layouts, _.get(config, _.get(config, 'layouts.engine')));
 
-      if (typeof tagsConfig.path === 'string' && _.isEmpty(path.extname(tagsConfig.path))) {
-        if (!_.endsWith(tagsConfig.path, '/')) tagsConfig.path = `${tagsConfig.path}/`;
-        tagsConfig.path = `${tagsConfig.path}index.html`;
+    // Set defaults for metalsmith-in-place
+    _.merge(config.inPlace, _.get(config, _.get(config, 'inPlace.engine')));
+
+    // Set defaults for metalsmith-permalinks
+    if (!config.permalinks) config.permalinks = { relative: false, linksets: [] };
+
+    // Set defaults for metalsmith-pagination
+    if (!config.pagination) config.pagination = {};
+
+    // Set defaults for metalsmith-tags
+    if (config.tags) {
+      if ((typeof config.tags.layout === 'string') && _.isEmpty(path.extname(config.tags.layout)))
+        config.tags.layout = `${config.tags.layout}.${config.layouts.engine}`;
+
+      if (typeof config.tags.path === 'string' && _.isEmpty(path.extname(config.tags.path))) {
+        if (!_.endsWith(config.tags.path, '/')) config.tags.path = `${config.tags.path}/`;
+        config.tags.path = `${config.tags.path}index.html`;
       }
 
-      if (typeof tagsConfig.skipMetadata !== 'boolean') tagsConfig.skipMetadata = true;
+      if (typeof config.tags.skipMetadata !== 'boolean') config.tags.skipMetadata = true;
     }
 
-    if (collectionsConfig) {
-      for (let collectionName in collectionsConfig) {
-        const data = _.get(collectionsConfig, collectionName);
+    // Set defaults for metalsmith-collections
+    if (config.collections) {
+      for (let collectionName in config.collections) {
+        const data = _.get(config.collections, collectionName);
         let pattern = _.get(data, 'pattern');
         let permalink = _.get(data, 'permalink') || path.join(collectionName, ':slug');
         let date = _.get(data, 'date');
@@ -219,16 +209,16 @@ module.exports = function(options, extendsDefaults) {
         if (typeof data.layout !== 'string') data.layout = collectionName;
 
         if (_.isEmpty(path.extname(data.layout))) {
-          data.layout = `${data.layout}.${layoutsConfig.engine}`;
+          data.layout = `${data.layout}.${config.layouts.engine}`;
         }
 
         if (data.metadata && (typeof data.metadata.layout === 'string') && _.isEmpty(path.extname(data.metadata.layout))) {
-          data.metadata.layout = `${data.metadata.layout}.${layoutsConfig.engine}`;
+          data.metadata.layout = `${data.metadata.layout}.${config.layouts.engine}`;
         }
 
         if (paginate) {
           if ((typeof paginate.layout === 'string') && _.isEmpty(path.extname(paginate.layout)))
-            paginate.layout = `${paginate.layout}.${layoutsConfig.engine}`;
+            paginate.layout = `${paginate.layout}.${config.layouts.engine}`;
 
           if (typeof paginate.path === 'string' && _.isEmpty(path.extname(paginate.path))) {
             if (!_.endsWith(paginate.path, '/')) paginate.path = `${paginate.path}/`;
@@ -241,7 +231,7 @@ module.exports = function(options, extendsDefaults) {
             paginate.noPageOne = true;
           }
 
-          paginationConfig[`collections.${collectionName}`] = paginate;
+          config.pagination[`collections.${collectionName}`] = paginate;
         }
 
         if (pattern) {
@@ -255,7 +245,7 @@ module.exports = function(options, extendsDefaults) {
 
         if (permalink) {
           if (_.startsWith(permalink, '/')) permalink = permalink.substr(1);
-          permalinksConfig.linksets.push({
+          config.permalinks.linksets.push({
             match: { collection: collectionName },
             pattern: permalink,
             date: date
@@ -266,60 +256,70 @@ module.exports = function(options, extendsDefaults) {
 
     // Spoof i18n metadata so it can bind its API.
     if (config.i18n) {
+      if ((config.i18n.locales instanceof Array) && (typeof config.i18n.defaultLocale !== 'string'))
+        config.i18n.defaultLocale = config.i18n.locales[0] || 'en';
       config.metadata.headers = {};
       i18n.configure(config.i18n);
       i18n.init(config.metadata);
     }
 
-    let m = metalsmith(config.base || __dirname)
+    metalsmith(config.base || __dirname)
       .clean(false)
       .source(config.src)
       .ignore(config.ignore)
       .destination(config.dest)
       .metadata(config.metadata)
       .use(collections(config.collections))
-      .use(related(config.related));
-
-    if (config.tags)
-      m = m.use(tags(config.tags));
-
-    m = m
-      .use(pagination(paginationConfig))
+      .use(related(config.related))
+      .use((config.tags) ? tags(config.tags) : noop())
+      .use(pagination(config.pagination))
       .use(metadata(metadataConfig))
       .use(markdown(config.markdown))
-      .use(permalinks(permalinksConfig))
+      .use(permalinks(config.permalinks))
       .use(pathfinder(config.collections))
-      .use(layouts(layoutsConfig))
-      .use(inPlace(inPlaceConfig));
-
-    if (config.prism !== false)
-      m = m.use(prism(config.prism));
-
-    if (config.mathjax !== false)
-      m = m.use(mathjax((typeof config.mathjax === 'object') ? config.mathjax : {}));
-
-    m = m
-      .use(permalinks(permalinksConfig))
-      .use(reporter());
-
-    if (!_.isEmpty(_.get(config, 'sitemap.hostname')))
-      m = m.use(sitemap(config.sitemap));
-
-    m.build(function(err) {
-      if (err) {
-        if (shouldWatch) {
-          util.log(util.colors.blue('[metalsmith]'), util.colors.red(err));
-          callback();
+      .use(layouts(config.layouts))
+      .use(inPlace(config.inPlace))
+      .use((config.prism !== false) ? prism(config.prism) : noop())
+      .use((config.mathjax !== false) ? mathjax((typeof config.mathjax === 'object') ? config.mathjax : {}) : noop())
+      .use(permalinks(config.permalinks))
+      .use(reporter())
+      .use((!_.isEmpty(_.get(config, 'sitemap.hostname'))) ? sitemap(config.sitemap) : noop())
+      .build(function(err) {
+        if (err) {
+          if (shouldWatch) {
+            util.log(util.colors.blue('[metalsmith]'), util.colors.red(err));
+            callback();
+          }
+          else {
+            callback(err);
+          }
         }
         else {
-          callback(err);
+          callback();
         }
-      }
-      else {
-        callback();
-      }
-    });
+      });
   }
 };
 
+function getDefaults(context, options) {
+  const defaults = _.cloneDeep(DEFAULT_CONFIG);
+  const taskName = context && context.seq[0];
 
+  if (options.src) {
+    if (taskName)
+      defaults.watch = {
+        files: [$.glob('**/*', { base: $.glob(options.src, { base: options.base }), exts: FILE_EXTENSIONS })],
+        tasks: [taskName]
+      };
+
+    defaults.jade.basedir = $.glob(options.src, { base: options.base });
+    defaults.pug.basedir = $.glob(options.src, { base: options.base });
+  }
+
+  return defaults;
+}
+
+function getConfig(context, options, extendsDefaults) {
+  const defaults = getDefaults(context, options);
+  return $.config(options, defaults, (typeof extendsDefaults !== 'boolean') || extendsDefaults);
+}
