@@ -16,6 +16,7 @@ gulp.task('views', metalsmith({
     locales: ['en', 'jp'],
     directory: path.join(__dirname, 'config', 'locales')
   },
+  multilingual: false,
   mathjax: true,
   prism: {
     lineNumbers: true,

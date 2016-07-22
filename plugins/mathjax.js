@@ -11,10 +11,11 @@ const MathJax = require('mathjax-node/lib/mj-page');
  * Metalsmith for prerendering math equations in HTML files in MathJax.
  *
  * @param {Object} [options] - Options for MathJax.
+ * @param {string} [locale] - Current locale.
  *
  * @return {Function} Metalsmith plugin.
  */
-module.exports = function(options) {
+module.exports = function(options, locale) {
   return function(files, metalsmith, done) {
     async.eachSeries(Object.keys(files), prerender, done);
 
@@ -31,7 +32,10 @@ module.exports = function(options) {
           html: contents,
           done: function(err, window) {
             if (err) {
-              util.log(util.colors.blue('[metalsmith]'), util.colors.red('Error occured when attempting MathJax rendering on'), util.colors.magenta(file));
+              if (locale)
+                util.log(util.colors.blue('[metalsmith]'), util.colors.green(`[${locale}]`), util.colors.red('Error occured when attempting MathJax rendering on'), util.colors.magenta(file));
+              else
+                util.log(util.colors.blue('[metalsmith]'), util.colors.red('Error occured when attempting MathJax rendering on'), util.colors.magenta(file));
               throw(err);
             }
 
@@ -44,7 +48,10 @@ module.exports = function(options) {
               window.document.body.innerHTML = result.html;
               const html = '<!DOCTYPE html>\n' + window.document.documentElement.outerHTML.replace(/^(\n|\s)*/, '');
               data.contents = new Buffer(html);
-              util.log(util.colors.blue('[metalsmith]'), 'Prerendered MathJax for', util.colors.magenta(file));
+              if (locale)
+                util.log(util.colors.blue('[metalsmith]'), util.colors.green(`[${locale}]`), 'Prerendered MathJax for', util.colors.magenta(file));
+              else
+                util.log(util.colors.blue('[metalsmith]'), 'Prerendered MathJax for', util.colors.magenta(file));
               done();
             });
           }

@@ -1,6 +1,6 @@
 {
   "name": "gulp-task-metalsmith",
-  "version": "3.0.3",
+  "version": "4.0.0",
   "description": "Gulp task for processing template files with Metalsmith",
   "main": "index.js",
   "repository": {
@@ -23,7 +23,7 @@
   "author": "Andrew Wei",
   "license": "MIT",
   "dependencies": {
-    "async": "^2.0.0-rc.6",
+    "async": "^2.0.0",
     "browser-sync": "^2.13.0",
     "gulp-task-helpers": "^1.2.8",
     "gulp-util": "^3.0.7",

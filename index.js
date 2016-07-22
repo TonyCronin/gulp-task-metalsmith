@@ -6,6 +6,7 @@
 
 const $ = require('gulp-task-helpers');
 const _ = require('lodash');
+const async = require('async');
 const collections = require('metalsmith-collections');
 const fs = require('fs-extra');
 const i18n = require('i18n');
@@ -15,6 +16,7 @@ const markdown = require('metalsmith-markdown');
 const metadata = require('./plugins/metadata');
 const mathjax = require('./plugins/mathjax');
 const metalsmith = require('metalsmith');
+const multilingual = require('./plugins/multilingual');
 const noop = require('./plugins/noop');
 const pagination = require('metalsmith-pagination');
 const path = require('path');
@@ -28,6 +30,9 @@ const sequence = require('run-sequence');
 const sitemap = require('metalsmith-sitemap');
 const tags = require('metalsmith-tags');
 const util = require('gulp-util');
+
+const normalizePath = require('./helpers/normalizePath');
+const localizePath = require('./helpers/localizePath');
 
 const FILE_EXTENSIONS = ['html', 'htm', 'md', 'php', 'jade', 'pug'];
 
@@ -44,6 +49,7 @@ const DEFAULT_CONFIG = {
   markdown: {
     langPrefix: 'language-'
   },
+  multilingual: true,
   related: {
     terms: 5,
     max: 5,
@@ -162,145 +168,71 @@ module.exports = function(options, extendsDefaults) {
       });
     }
 
-    const metadataConfig = {
-      'error-pages': {
-        pattern: '**/{500,404}.*',
-        metadata: {
-          permalink: false
-        }
-      }
-    };
-
-    // Set defaults for metalsmith-layouts.
-    if (!_.get(config, 'layouts.directory')) _.set(config, 'layouts.directory', path.join(config.src, 'layouts'));
-    _.merge(config.layouts, _.get(config, _.get(config, 'layouts.engine')));
-
-    // Set defaults for metalsmith-in-place
-    _.merge(config.inPlace, _.get(config, _.get(config, 'inPlace.engine')));
-
-    // Set defaults for metalsmith-permalinks
-    if (!config.permalinks) config.permalinks = { relative: false, linksets: [] };
-
-    // Set defaults for metalsmith-pagination
-    if (!config.pagination) config.pagination = {};
-
-    // Set defaults for metalsmith-tags
-    if (config.tags) {
-      if ((typeof config.tags.layout === 'string') && _.isEmpty(path.extname(config.tags.layout)))
-        config.tags.layout = `${config.tags.layout}.${config.layouts.engine}`;
-
-      if (typeof config.tags.path === 'string' && _.isEmpty(path.extname(config.tags.path))) {
-        if (!_.endsWith(config.tags.path, '/')) config.tags.path = `${config.tags.path}/`;
-        config.tags.path = `${config.tags.path}index.html`;
-      }
-
-      if (typeof config.tags.skipMetadata !== 'boolean') config.tags.skipMetadata = true;
-    }
-
-    // Set defaults for metalsmith-collections
-    if (config.collections) {
-      for (let collectionName in config.collections) {
-        const data = _.get(config.collections, collectionName);
-        let pattern = _.get(data, 'pattern');
-        let permalink = _.get(data, 'permalink') || path.join(collectionName, ':slug');
-        let date = _.get(data, 'date');
-        let paginate = _.get(data, 'paginate');
-
-        if (typeof data.layout !== 'string') data.layout = collectionName;
-
-        if (_.isEmpty(path.extname(data.layout))) {
-          data.layout = `${data.layout}.${config.layouts.engine}`;
-        }
-
-        if (data.metadata && (typeof data.metadata.layout === 'string') && _.isEmpty(path.extname(data.metadata.layout))) {
-          data.metadata.layout = `${data.metadata.layout}.${config.layouts.engine}`;
-        }
-
-        if (paginate) {
-          if ((typeof paginate.layout === 'string') && _.isEmpty(path.extname(paginate.layout)))
-            paginate.layout = `${paginate.layout}.${config.layouts.engine}`;
-
-          if (typeof paginate.path === 'string' && _.isEmpty(path.extname(paginate.path))) {
-            if (!_.endsWith(paginate.path, '/')) paginate.path = `${paginate.path}/`;
-            paginate.path = `${paginate.path}index.html`;
-          }
-
-          if (typeof paginate.first === 'string' && _.isEmpty(path.extname(paginate.first))) {
-            if (!_.endsWith(paginate.first, '/')) paginate.first = `${paginate.first}/`;
-            paginate.first = `${paginate.first}index.html`;
-            paginate.noPageOne = true;
-          }
-
-          config.pagination[`collections.${collectionName}`] = paginate;
-        }
-
-        if (pattern) {
-          metadataConfig[collectionName] = {
-            pattern: pattern,
-            metadata: _.merge(data.metadata || {}, {
-              layout: data.layout
-            })
-          }
-        }
-
-        if (permalink) {
-          if (_.startsWith(permalink, '/')) permalink = permalink.substr(1);
-          config.permalinks.linksets.push({
-            match: { collection: collectionName },
-            pattern: permalink,
-            date: date
-          });
-        }
-      }
-    }
-
     // Spoof i18n metadata so it can bind its API.
     if (config.i18n) {
-      if ((config.i18n.locales instanceof Array) && (typeof config.i18n.defaultLocale !== 'string'))
-        config.i18n.defaultLocale = config.i18n.locales[0] || 'en';
-      config.metadata.headers = {};
+      if ((config.i18n.locales instanceof Array) && (typeof config.i18n.defaultLocale !== 'string')) config.i18n.defaultLocale = config.i18n.locales[0] || 'en';
+      config.metadata.global.headers = {};
       i18n.configure(config.i18n);
-      i18n.init(config.metadata);
+      i18n.init(config.metadata.global);
     }
 
-    metalsmith(config.base || __dirname)
-      .clean(false)
-      .source(config.src)
-      .ignore(config.ignore)
-      .destination(config.dest)
-      .metadata(config.metadata)
-      .use(collections(config.collections))
-      .use(related(config.related))
-      .use((config.tags) ? tags(config.tags) : noop())
-      .use(pagination(config.pagination))
-      .use(metadata(metadataConfig))
-      .use(markdown(config.markdown))
-      .use(permalinks(config.permalinks))
-      .use(pathfinder())
-      .use(layouts(config.layouts))
-      .use(inPlace(config.inPlace))
-      .use((config.prism !== false) ? prism(config.prism) : noop())
-      .use((config.mathjax !== false) ? mathjax((typeof config.mathjax === 'object') ? config.mathjax : {}) : noop())
-      .use(permalinks(config.permalinks))
-      .use(reporter())
-      .use((!_.isEmpty(_.get(config, 'sitemap.hostname'))) ? sitemap(config.sitemap) : noop())
-      .build(function(err) {
-        if (err) {
-          if (shouldWatch) {
-            util.log(util.colors.blue('[metalsmith]'), util.colors.red(err));
-            callback();
-          }
-          else {
-            callback(err);
-          }
-        }
-        else {
-          callback();
-        }
-      });
+    async.eachSeries((config.i18n && config.multilingual) ? config.i18n.locales : [null], function(locale, done) {
+      build(config, locale, done);
+    }, callback);
   }
 };
 
+/**
+ * Runs Metalsmith build on specified locale.
+ *
+ * @param {Object} config
+ * @param {string} locale
+ * @param {Function} done
+ */
+function build(config, locale, done) {
+  const shouldWatch = (util.env['watch'] || util.env['w']) && (config.watch !== false);
+
+  if (locale && config.i18n && (config.i18n.locales instanceof Array) && (locale === config.i18n.locales[0]))
+    locale = undefined;
+
+  config = normalizeConfig(config, locale);
+
+  metalsmith(config.base || __dirname)
+    .clean(false)
+    .source(config.src)
+    .ignore(config.ignore)
+    .destination(config.dest)
+    .metadata(config.metadata.global)
+    .use(collections(config.collections))
+    .use(related(config.related))
+    .use((config.tags) ? tags(config.tags) : noop())
+    .use(pagination(config.pagination))
+    .use(metadata(config.metadata.collections))
+    .use(markdown(config.markdown))
+    .use(config.multilingual ? multilingual(locale) : noop())
+    .use(permalinks(config.permalinks))
+    .use(pathfinder(locale, config.i18n && config.i18n.locales))
+    .use(layouts(config.layouts))
+    .use(inPlace(config.inPlace))
+    .use((config.prism !== false) ? prism(config.prism) : noop())
+    .use((config.mathjax !== false) ? mathjax((typeof config.mathjax === 'object') ? config.mathjax : {}, locale) : noop())
+    .use(permalinks(config.permalinks))
+    .use(reporter(locale))
+    .use((!_.isEmpty(_.get(config, 'sitemap.hostname')) && !locale) ? sitemap(config.sitemap) : noop())
+    .build(function(err) {
+      if (err && shouldWatch) util.log(util.colors.blue('[metalsmith]'), util.colors.red(err));
+      done(!shouldWatch && err);
+    });
+}
+
+/**
+ * Gets preprocessed default config.
+ *
+ * @param {Object} context
+ * @param {Object} options
+ *
+ * @return {Object}
+ */
 function getDefaults(context, options) {
   const defaults = _.cloneDeep(DEFAULT_CONFIG);
   const taskName = context && context.seq[0];
@@ -319,7 +251,130 @@ function getDefaults(context, options) {
   return defaults;
 }
 
+/**
+ * Normalizes config.
+ *
+ * @param {Object} config
+ * @param {string} locale
+ *
+ * @return {Object}
+ */
+function normalizeConfig(config, locale) {
+  // Set current locale of i18n context.
+  if (config.i18n && (config.i18n.locales instanceof Array)) {
+    config.metadata.global.locale = locale || config.i18n.locales[0];
+    config.metadata.global.locales = config.i18n.locales;
+    config.metadata.global.__p = function(s) { return normalizePath(localizePath(s, locale, config.i18n.locales)); };
+  }
+  else {
+    config.metadata.global.__p = function(s) { return normalizePath(s); };
+  }
+
+  // Set defaults for metalsmith-layouts.
+  if (!_.get(config, 'layouts.directory')) _.set(config, 'layouts.directory', path.join(config.src, 'layouts'));
+  _.merge(config.layouts, _.get(config, _.get(config, 'layouts.engine')));
+
+  // Set defaults for metalsmith-in-place.
+  _.merge(config.inPlace, _.get(config, _.get(config, 'inPlace.engine')));
+
+  // Set defaults for metalsmith-permalinks.
+  config.permalinks = { relative: false, linksets: [] };
+
+  // Set defaults for metalsmith-pagination.
+  config.pagination = {};
+
+  // Set defaults for metalsmith-tags.
+  if (config.tags) {
+    if ((typeof config.tags.layout === 'string') && _.isEmpty(path.extname(config.tags.layout)))
+      config.tags.layout = `${config.tags.layout}.${config.layouts.engine}`;
+
+    if (typeof config.tags.path === 'string' && _.isEmpty(path.extname(config.tags.path))) {
+      if (!_.endsWith(config.tags.path, '/')) config.tags.path = `${config.tags.path}/`;
+      config.tags.path = `${config.tags.path}index.html`;
+    }
+
+    if (typeof config.tags.skipMetadata !== 'boolean') config.tags.skipMetadata = true;
+  }
+
+  // Set defaults for metalsmith-collections.
+  if (config.collections) {
+    for (let collectionName in config.collections) {
+      const data = _.get(config.collections, collectionName);
+      let pattern = _.get(data, 'pattern');
+      let permalink = _.get(data, 'permalink') || path.join(collectionName, ':slug');
+      let date = _.get(data, 'date');
+      let paginate = _.get(data, 'paginate');
+
+      if (typeof data.layout !== 'string') data.layout = collectionName;
+
+      if (_.isEmpty(path.extname(data.layout))) {
+        data.layout = `${data.layout}.${config.layouts.engine}`;
+      }
+
+      if (data.metadata && (typeof data.metadata.layout === 'string') && _.isEmpty(path.extname(data.metadata.layout))) {
+        data.metadata.layout = `${data.metadata.layout}.${config.layouts.engine}`;
+      }
+
+      if (paginate) {
+        if ((typeof paginate.layout === 'string') && _.isEmpty(path.extname(paginate.layout)))
+          paginate.layout = `${paginate.layout}.${config.layouts.engine}`;
+
+        if (typeof paginate.path === 'string' && _.isEmpty(path.extname(paginate.path))) {
+          if (!_.endsWith(paginate.path, '/')) paginate.path = `${paginate.path}/`;
+          paginate.path = `${paginate.path}index.html`;
+        }
+
+        if (typeof paginate.first === 'string' && _.isEmpty(path.extname(paginate.first))) {
+          if (!_.endsWith(paginate.first, '/')) paginate.first = `${paginate.first}/`;
+          paginate.first = `${paginate.first}index.html`;
+          paginate.noPageOne = true;
+        }
+
+        config.pagination[`collections.${collectionName}`] = paginate;
+      }
+
+      if (pattern) {
+        config.metadata.collections[collectionName] = {
+          pattern: pattern,
+          metadata: _.merge(data.metadata || {}, {
+            layout: data.layout
+          })
+        }
+      }
+
+      if (permalink) {
+        if (_.startsWith(permalink, '/')) permalink = permalink.substr(1);
+        config.permalinks.linksets.push({
+          match: { collection: collectionName },
+          pattern: locale ? `${locale}/${permalink}` : permalink,
+          date: date
+        });
+      }
+    }
+  }
+
+  return config;
+}
+
+/**
+ * Gets postprocessed config.
+ *
+ * @param {Object} context
+ * @param {Object} options
+ * @param {boolean} extendsDefaults
+ *
+ * @return {Object}
+ */
 function getConfig(context, options, extendsDefaults) {
   const defaults = getDefaults(context, options);
-  return $.config(options, defaults, (typeof extendsDefaults !== 'boolean') || extendsDefaults);
+  const config = $.config(options, defaults, (typeof extendsDefaults !== 'boolean') || extendsDefaults);
+  config.metadata = { global: config.metadata, collections: {
+    'error-pages': {
+      pattern: '**/{500,404}.*',
+      metadata: {
+        permalink: false
+      }
+    }
+  }};
+  return config;
 }

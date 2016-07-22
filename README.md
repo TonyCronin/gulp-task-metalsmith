@@ -31,6 +31,7 @@ gulp.task('views', metalsmith({
     _: _,
     m: moment
   },
+  multilingual: true,
   mathjax: true,
   prism: {
     showLanguage: true,
@@ -130,6 +131,13 @@ Type: `string`, `Function` or `Array`<br>
 Default: Current task name
 
 Task(s) or methods to invoke whenever watched files have changed. This array is applied to [`run-sequence`](https://www.npmjs.com/package/run-sequence). Defaults to the current task name.
+
+##### `options.multilingual`
+
+Type: `Object`<br>
+Default: `true`
+
+Specifies whether templates should be generated in all supported locales.
 
 ##### `options.i18n`
 
