@@ -276,7 +276,7 @@ module.exports = function(options, extendsDefaults) {
       .use(metadata(metadataConfig))
       .use(markdown(config.markdown))
       .use(permalinks(config.permalinks))
-      .use(pathfinder(config.collections))
+      .use(pathfinder())
       .use(layouts(config.layouts))
       .use(inPlace(config.inPlace))
       .use((config.prism !== false) ? prism(config.prism) : noop())

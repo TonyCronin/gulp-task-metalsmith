@@ -12,15 +12,11 @@ module.exports = function() {
     Object.keys(files).forEach((file, i) => {
       const data = files[file];
 
-      if (typeof data.path === 'string') {
+      if (typeof data.path === 'string')
         data.path = normalize(data.path);
-      }
 
-      if (data.pagination) {
-        data.pagination.pages.forEach(val => {
-          val.path = normalize(val.path);
-        });
-      }
+      if (data.pagination)
+        data.pagination.pages.forEach(val => val.path = normalize(val.path));
     });
 
     done();
