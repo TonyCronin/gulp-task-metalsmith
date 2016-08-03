@@ -18,7 +18,7 @@ module.exports = function(currentLocale, locales) {
         data.path = normalizePath(localizePath(data.path, currentLocale, locales));
 
       if (data.pagination)
-        data.pagination.pages.forEach(val => val.path = normalizePath(localizePath(data.path, currentLocale, locales)));
+        data.pagination.pages.forEach(val => val.path = normalizePath(localizePath(val.path, currentLocale, locales)));
     });
 
     done();
