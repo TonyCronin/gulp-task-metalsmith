@@ -27,7 +27,6 @@ const related = require('metalsmith-related');
 const reporter = require('./plugins/reporter');
 const resolve = require('./plugins/resolve');
 const sequence = require('run-sequence');
-const sitemap = require('metalsmith-sitemap');
 const tags = require('metalsmith-tags');
 const util = require('gulp-util');
 
@@ -77,15 +76,6 @@ const DEFAULT_CONFIG = {
   },
   jade: {
     pretty: true
-  },
-  sitemap: {
-    hostname: undefined,
-    pattern: [
-      '**/*.html',
-      '!**/404.html',
-      '!**/500.html'
-    ],
-    omitIndex: true
   },
   envs: {
     production: {
@@ -148,7 +138,6 @@ const DEFAULT_CONFIG = {
  *                                     `options.{engine_name}`, where
  *                                     {engine_name} is the value for
  *                                     `options.inPlace.engine`.
- * @param {Object} [options.sitemap] - `metalsmith-sitemap` options.
  * @param {boolean} [extendsDefaults=true] - Maps to `useConcat` param in
  *                                           `gulp-task-helpers`#config.
  *
@@ -218,7 +207,6 @@ function build(config, locale, done) {
     .use((config.mathjax !== false) ? mathjax((typeof config.mathjax === 'object') ? config.mathjax : {}, locale) : noop())
     .use(permalinks(config.permalinks))
     .use(reporter(locale))
-    .use((!_.isEmpty(_.get(config, 'sitemap.hostname')) && !locale) ? sitemap(config.sitemap) : noop())
     .build(function(err) {
       if (err && shouldWatch) util.log(util.colors.blue('[metalsmith]'), util.colors.red(err));
       done(!shouldWatch && err);
