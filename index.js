@@ -9,6 +9,7 @@ const _ = require('lodash');
 const async = require('async');
 const collections = require('metalsmith-collections');
 const fs = require('fs-extra');
+const helpers = require('./helpers');
 const i18n = require('i18n');
 const inPlace = require('metalsmith-in-place');
 const layouts = require('metalsmith-layouts');
@@ -30,9 +31,6 @@ const resolve = require('./plugins/resolve');
 const sequence = require('run-sequence');
 const tags = require('metalsmith-tags');
 const util = require('gulp-util');
-
-const getNormalizedPath = require('./helpers/getNormalizedPath');
-const getLocalizedPath = require('./helpers/getLocalizedPath');
 
 const FILE_EXTENSIONS = ['html', 'htm', 'md', 'php', 'jade', 'pug'];
 
@@ -259,10 +257,10 @@ function normalizeConfig(config, locale) {
   if (config.i18n && (config.i18n.locales instanceof Array)) {
     config.metadata.global.locale = locale || config.i18n.locales[0];
     config.metadata.global.locales = config.i18n.locales;
-    config.metadata.global.__p = function(s) { return getNormalizedPath(getLocalizedPath(s, locale, config.i18n.locales)); };
+    config.metadata.global.__p = function(s) { return helpers.getNormalizedPath(helpers.getLocalizedPath(s, locale, config.i18n.locales)); };
   }
   else {
-    config.metadata.global.__p = function(s) { return getNormalizedPath(s); };
+    config.metadata.global.__p = function(s) { return helpers.getNormalizedPath(s); };
   }
 
   // Set defaults for metalsmith-layouts.
