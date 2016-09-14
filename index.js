@@ -16,6 +16,7 @@ const markdown = require('metalsmith-markdown');
 const metadata = require('./plugins/metadata');
 const mathjax = require('./plugins/mathjax');
 const metalsmith = require('metalsmith');
+const moment = require('moment');
 const multilingual = require('./plugins/multilingual');
 const noop = require('./plugins/noop');
 const pagination = require('metalsmith-pagination');
@@ -30,8 +31,8 @@ const sequence = require('run-sequence');
 const tags = require('metalsmith-tags');
 const util = require('gulp-util');
 
-const normalizePath = require('./helpers/normalizePath');
-const localizePath = require('./helpers/localizePath');
+const getNormalizedPath = require('./helpers/getNormalizedPath');
+const getLocalizedPath = require('./helpers/getLocalizedPath');
 
 const FILE_EXTENSIONS = ['html', 'htm', 'md', 'php', 'jade', 'pug'];
 
@@ -42,7 +43,13 @@ const DEFAULT_CONFIG = {
   ignore: ['layouts', 'includes', '.DS_Store'],
   watch: undefined,
   i18n: undefined,
-  metadata: {},
+  metadata: {
+    _: _,
+    lodash: _,
+    m: moment,
+    moment: moment,
+    env: process.env
+  },
   collections: undefined,
   tags: undefined,
   markdown: {
@@ -252,10 +259,10 @@ function normalizeConfig(config, locale) {
   if (config.i18n && (config.i18n.locales instanceof Array)) {
     config.metadata.global.locale = locale || config.i18n.locales[0];
     config.metadata.global.locales = config.i18n.locales;
-    config.metadata.global.__p = function(s) { return normalizePath(localizePath(s, locale, config.i18n.locales)); };
+    config.metadata.global.__p = function(s) { return getNormalizedPath(getLocalizedPath(s, locale, config.i18n.locales)); };
   }
   else {
-    config.metadata.global.__p = function(s) { return normalizePath(s); };
+    config.metadata.global.__p = function(s) { return getNormalizedPath(s); };
   }
 
   // Set defaults for metalsmith-layouts.

@@ -1,17 +1,11 @@
-const _ = require('lodash');
 const browserSync = require('browser-sync');
 const gulp = require('gulp');
 const metalsmith = require('../');
-const moment = require('moment');
 const path = require('path');
 
 gulp.task('views', metalsmith({
   src: path.join(__dirname, 'app'),
   dest: path.join(__dirname, 'public'),
-  metadata: {
-    _: _,
-    m: moment
-  },
   i18n: {
     locales: ['en', 'jp'],
     directory: path.join(__dirname, 'config', 'locales')

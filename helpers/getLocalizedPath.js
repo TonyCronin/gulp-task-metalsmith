@@ -11,7 +11,7 @@ const _ = require('lodash');
  *
  * @return {string} Localized path.
  */
-function localizePath(path, currentLocale, locales) {
+function getLocalizedPath(path, currentLocale, locales) {
   // Permalinks in the default locale do not require any locale prefixes, so
   // return the string untouched.
   if (!currentLocale || !locales || (currentLocale === locales[0])) return path;
@@ -23,4 +23,4 @@ function localizePath(path, currentLocale, locales) {
   return '/' + parts.join('/');
 }
 
-module.exports = localizePath;
+module.exports = getLocalizedPath;

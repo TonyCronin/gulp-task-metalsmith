@@ -10,7 +10,7 @@ const _ = require('lodash');
  *
  * @return {string} Normalized path.
  */
-function normalizePath(path) {
+function getNormalizedPath(path) {
   if (/((\/)?([a-zA-Z0-9\-\_\/\.]+))/g.test(path)) {
     if (!_.startsWith(path, '/')) path = `/${path}`;
     if (!_.endsWith(path, '.html') && !_.endsWith(path, '/')) path = `${path}/`;
@@ -19,4 +19,4 @@ function normalizePath(path) {
   return path;
 }
 
-module.exports = normalizePath;
+module.exports = getNormalizedPath;
