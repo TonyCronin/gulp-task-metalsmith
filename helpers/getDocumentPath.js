@@ -1,5 +1,7 @@
 // (c) Andrew Wei
 
+const getNormalizedPath = require('./getNormalizedPath');
+
 /**
  * Gets the path to the document under the given options.
  *
@@ -25,7 +27,7 @@ function getDocumentPath(doc, options) {
       ret = ret.replace(`:${key}`, val);
     }
 
-    return exports.path(ret);
+    return getNormalizedPath(ret);
   }
 
   return null;
