@@ -75,15 +75,16 @@ exports.getDocumentPath = function(doc, options) {
  * Gets the pagination metadata with arguments provided.
  *
  * @param {string} collectionName
- * @param {Object} collection
+ * @param {Array} collection
  * @param {number} currentPage
+ * @param {Object} options
  *
  * @return {Object}
  */
-exports.getPaginationData = function(collectionName, collection, currentPage) {
+exports.getPaginationData = function(collectionName, collection, currentPage, options) {
   if (!collection.length) return undefined;
 
-  const config = $.documents[collection[0].type];
+  const config = _.get(options, collection[0].type);
   const perPage = _.get(config, 'paginate.perPage');
 
   if (!config || isNaN(perPage)) return undefined;
@@ -113,4 +114,21 @@ exports.getPaginationData = function(collectionName, collection, currentPage) {
   }
 
   return undefined;
+};
+
+/**
+ * Gets the metadata object applied to templates.
+ *
+ * @param {Object} [options]
+ *
+ * @return {Object}
+ */
+exports.metadata = function(options) {
+  return _.merge({
+    _: _,
+    lodash: _,
+    m: require('moment'),
+    moment: require('moment'),
+    env: process.env
+  }, options);
 };

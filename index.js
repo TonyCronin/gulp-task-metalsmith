@@ -41,13 +41,7 @@ const DEFAULT_CONFIG = {
   ignore: ['layouts', 'includes', '.DS_Store'],
   watch: undefined,
   i18n: undefined,
-  metadata: {
-    _: _,
-    lodash: _,
-    m: moment,
-    moment: moment,
-    env: process.env
-  },
+  metadata: helpers.metadata(),
   collections: undefined,
   tags: undefined,
   markdown: {
