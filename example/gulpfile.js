@@ -10,7 +10,11 @@ gulp.task('views', metalsmith({
     locales: ['en', 'jp'],
     directory: path.join(__dirname, 'config', 'locales')
   },
-  multilingual: false,
+  metadata: {
+    _: require('lodash'),
+    m: require('moment')
+  },
+  multilingual: true,
   mathjax: true,
   prism: {
     lineNumbers: true,

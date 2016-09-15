@@ -17,7 +17,6 @@ const markdown = require('metalsmith-markdown');
 const metadata = require('./plugins/metadata');
 const mathjax = require('./plugins/mathjax');
 const metalsmith = require('metalsmith');
-const moment = require('moment');
 const multilingual = require('./plugins/multilingual');
 const noop = require('./plugins/noop');
 const pagination = require('metalsmith-pagination');
@@ -41,7 +40,7 @@ const DEFAULT_CONFIG = {
   ignore: ['layouts', 'includes', '.DS_Store'],
   watch: undefined,
   i18n: undefined,
-  metadata: helpers.metadata(),
+  metadata: {},
   collections: undefined,
   tags: undefined,
   markdown: {

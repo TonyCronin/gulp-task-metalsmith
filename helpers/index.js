@@ -115,20 +115,3 @@ exports.getPaginationData = function(collectionName, collection, currentPage, op
 
   return undefined;
 };
-
-/**
- * Gets the metadata object applied to templates.
- *
- * @param {Object} [options]
- *
- * @return {Object}
- */
-exports.metadata = function(options) {
-  return _.merge({
-    _: _,
-    lodash: _,
-    m: require('moment'),
-    moment: require('moment'),
-    env: process.env
-  }, options);
-};
